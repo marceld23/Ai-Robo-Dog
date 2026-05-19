@@ -242,13 +242,23 @@ def cmd_web(args: argparse.Namespace) -> int:
 
     bus = SensorBus.instance()
     leds = led_controller.get_controller()
-    server = WebServer(agent=agent, bus=bus, leds=leds)
+    server = WebServer(agent=agent, bus=bus, leds=leds,
+                       start_paused=args.start_paused)
     start_worker(server)
 
     print(f"Web-UI läuft auf http://{args.host}:{args.port}")
     print(f"({agent.tool_count} Tools geladen)\n")
     uvicorn.run(server.app, host=args.host, port=args.port, log_level="warning")
     return 0
+
+
+def cmd_netcfg(args: argparse.Namespace) -> int:
+    """WiFi onboarding (Phase 12). Returns once the dog is online; opens the
+    `ai-robo-dog-wifi` captive-portal AP if no known network is reachable."""
+    cfg_module.load()  # sets language for i18n
+    from aidog.netcfg import provision
+    online = provision(ap_password=args.ap_password, portal_port=args.port)
+    return 0 if online else 1
 
 
 def cmd_chat(args: argparse.Namespace) -> int:
@@ -329,7 +339,19 @@ def main(argv: list[str] | None = None) -> int:
     p_web = sub.add_parser("web", help="Web-UI (Phase 10) auf :8080")
     p_web.add_argument("--host", default="0.0.0.0")
     p_web.add_argument("--port", type=int, default=8080)
+    p_web.add_argument("--start-paused", action="store_true",
+                       help="boot inert — no LLM calls until the user clicks "
+                            "Resume in the Web UI (safe autostart default)")
     p_web.set_defaults(func=cmd_web)
+
+    p_net = sub.add_parser("netcfg",
+                           help="WiFi onboarding / captive portal (Phase 12)")
+    p_net.add_argument("--ap-password", default=None,
+                       help="WPA2 password for the ai-robo-dog-wifi AP "
+                            "(omit = open network)")
+    p_net.add_argument("--port", type=int, default=80,
+                       help="captive portal port (default 80, needs root)")
+    p_net.set_defaults(func=cmd_netcfg)
 
     args = parser.parse_args(argv)
     _bootstrap()

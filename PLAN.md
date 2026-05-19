@@ -21,9 +21,9 @@
 | 9 Robustness | ⏳ |
 | 10 Web UI (live view + intervention, mobile-responsive) | ✅ done |
 | 11 Memory + RAG (teaching tricks) | ✅ done (JSON + auto-inject) |
-| 12 WiFi onboarding (captive-portal AP fallback) | ⏳ planned |
+| 12 WiFi onboarding (captive-portal AP fallback) | ✅ done (AP live-test on device) |
 
-_Open work: phases 8 (personality tuning), 9 (robustness), 12 (WiFi onboarding). Completed-phase build details are in [BUILD_LOG.md](BUILD_LOG.md)._
+_Open work: phases 8 (personality tuning) and 9 (robustness). Completed-phase build details are in [BUILD_LOG.md](BUILD_LOG.md)._
 
 ---
 

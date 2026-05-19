@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ai-Robo-Dog WiFi</title>
+<style>
+  :root{--bg:#0f1115;--panel:#1a1d24;--p2:#232730;--bd:#2d323d;--tx:#e6e8ec;
+        --mut:#8a8f9a;--acc:#4caf50;--err:#e53935;--r:10px;--tap:48px}
+  *{box-sizing:border-box}
+  body{margin:0;font:16px/1.45 system-ui,-apple-system,sans-serif;
+       background:var(--bg);color:var(--tx);min-height:100vh}
+  .wrap{max-width:480px;margin:0 auto;padding:20px}
+  header{display:flex;align-items:center;gap:8px;margin-bottom:16px}
+  header h1{font-size:18px;margin:0;flex:1}
+  .lang{display:flex;gap:4px}
+  .lang button{font:inherit;background:var(--p2);color:var(--mut);
+       border:1px solid var(--bd);border-radius:6px;padding:4px 8px;
+       min-height:32px;cursor:pointer}
+  .lang button.on{background:var(--acc);color:#000;border-color:var(--acc)}
+  p.intro{color:var(--mut);font-size:14px;margin:0 0 16px}
+  .net{display:flex;align-items:center;gap:10px;width:100%;text-align:left;
+       background:var(--panel);border:1px solid var(--bd);border-radius:var(--r);
+       padding:12px 14px;margin-bottom:8px;min-height:var(--tap);
+       color:var(--tx);font:inherit;cursor:pointer}
+  .net:active{transform:scale(.99)}
+  .net .ssid{flex:1;font-weight:600;word-break:break-word}
+  .net .meta{color:var(--mut);font-size:12px}
+  .bars{font-size:13px;color:var(--acc)}
+  input[type=password],input[type=text]{width:100%;font:inherit;
+       background:var(--p2);border:1px solid var(--bd);border-radius:var(--r);
+       color:var(--tx);padding:0 14px;min-height:var(--tap);margin:8px 0}
+  button.primary{width:100%;font:inherit;font-weight:600;background:#1d4a25;
+       color:var(--tx);border:1px solid var(--acc);border-radius:var(--r);
+       min-height:var(--tap);cursor:pointer;margin-top:8px}
+  button.ghost{width:100%;font:inherit;background:var(--p2);color:var(--mut);
+       border:1px solid var(--bd);border-radius:var(--r);min-height:var(--tap);
+       cursor:pointer;margin-top:8px}
+  .pw-row{display:flex;align-items:center;gap:8px}
+  .pw-row label{color:var(--mut);font-size:13px;white-space:nowrap}
+  .status{text-align:center;padding:24px 0}
+  .status .big{font-size:18px;font-weight:600;margin-bottom:8px}
+  .status.err .big{color:var(--err)}
+  .status.ok .big{color:var(--acc)}
+  .spin{width:32px;height:32px;border:3px solid var(--bd);
+       border-top-color:var(--acc);border-radius:50%;margin:12px auto;
+       animation:s 1s linear infinite}
+  @keyframes s{to{transform:rotate(360deg)}}
+  .hint{color:var(--mut);font-size:12px;margin-top:20px;text-align:center}
+  .hidden{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1 data-i18n="np.title">Ai-Robo-Dog · WLAN einrichten</h1>
+    <div class="lang">
+      <button id="lang-de" type="button">DE</button>
+      <button id="lang-en" type="button">EN</button>
+    </div>
+  </header>
+
+  <p class="intro" data-i18n="np.intro">Wähle das WLAN…</p>
+
+  <div id="view-list">
+    <div id="nets"></div>
+    <button id="rescan" class="ghost" type="button" data-i18n="np.rescan">Erneut suchen</button>
+  </div>
+
+  <div id="view-pw" class="hidden">
+    <div class="net" style="cursor:default">
+      <span class="ssid" id="pw-ssid"></span>
+    </div>
+    <input id="pw" type="password" data-i18n-ph="np.password_ph" autocomplete="off">
+    <div class="pw-row">
+      <input id="pw-show" type="checkbox">
+      <label for="pw-show" data-i18n="np.show_pw">Anzeigen</label>
+    </div>
+    <button id="do-connect" class="primary" type="button" data-i18n="np.connect">Verbinden</button>
+    <button id="pw-back" class="ghost" type="button" data-i18n="np.back">Zurück</button>
+  </div>
+
+  <div id="view-status" class="hidden">
+    <div class="status" id="status-box">
+      <div class="spin" id="spin"></div>
+      <div class="big" id="status-msg"></div>
+    </div>
+  </div>
+
+  <p class="hint" data-i18n="np.hint">Tipp: …</p>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+let I={}, LANG="de", selSsid="", selSecured=true, poll=null;
+
+function T(k,v){let s=I[k]||k;if(v)for(const x in v)s=s.replace("{"+x+"}",v[x]);return s;}
+function applyI(){
+  document.querySelectorAll("[data-i18n]").forEach(e=>{const t=I[e.getAttribute("data-i18n")];if(t)e.textContent=t;});
+  document.querySelectorAll("[data-i18n-ph]").forEach(e=>{const t=I[e.getAttribute("data-i18n-ph")];if(t)e.placeholder=t;});
+  $("lang-de").classList.toggle("on",LANG==="de");
+  $("lang-en").classList.toggle("on",LANG==="en");
+  document.documentElement.lang=LANG;
+}
+async function loadI(lang){
+  const r=await fetch("/api/i18n"+(lang?"?lang="+lang:""));
+  const d=await r.json();I=d.strings||{};LANG=d.lang||"de";applyI();renderNets(lastNets);
+}
+$("lang-de").onclick=()=>loadI("de");
+$("lang-en").onclick=()=>loadI("en");
+
+let lastNets=[];
+function bars(sig){const n=Math.max(1,Math.min(4,Math.round(sig/25)));return "▂▄▆█".slice(0,n);}
+function renderNets(nets){
+  lastNets=nets;
+  const root=$("nets");root.innerHTML="";
+  if(!nets.length){
+    const p=document.createElement("p");p.className="intro";
+    p.textContent=T("np.no_networks");root.appendChild(p);return;
+  }
+  for(const n of nets){
+    const b=document.createElement("button");b.className="net";b.type="button";
+    b.innerHTML=`<span class="ssid"></span><span class="meta">${n.secured?T("np.secured"):T("np.open")}</span><span class="bars">${bars(n.signal)}</span>`;
+    b.querySelector(".ssid").textContent=n.ssid;
+    b.onclick=()=>{selSsid=n.ssid;selSecured=n.secured;showPw();};
+    root.appendChild(b);
+  }
+}
+function show(v){for(const x of ["list","pw","status"])$("view-"+x).classList.toggle("hidden",x!==v);}
+function showPw(){
+  $("pw-ssid").textContent=selSsid;$("pw").value="";
+  $("pw").parentElement && ($("pw").classList.toggle("hidden",!selSecured));
+  show("pw");$("pw").focus();
+}
+$("pw-show").onchange=e=>{$("pw").type=e.target.checked?"text":"password";};
+$("pw-back").onclick=()=>show("list");
+$("rescan").onclick=async()=>{await fetch("/api/rescan",{method:"POST"});$("rescan").textContent=T("np.scanning");};
+$("do-connect").onclick=async()=>{
+  const psk=$("pw").value;
+  await fetch("/api/connect",{method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({ssid:selSsid,psk:psk})});
+  show("status");
+};
+function renderStatus(s){
+  const box=$("status-box"),msg=$("status-msg"),sp=$("spin");
+  box.className="status";
+  if(s.status==="online"){
+    box.classList.add("ok");sp.classList.add("hidden");
+    msg.textContent=s.online_ip?T("np.online",{url:"http://"+s.online_ip+":8080"}):T("np.online_noip");
+  }else if(s.status==="error"){
+    box.classList.add("err");sp.classList.add("hidden");
+    msg.textContent=T(s.message||"np.connect_failed");
+    setTimeout(()=>{show("list");},2500);
+  }else{
+    sp.classList.remove("hidden");
+    msg.textContent=T(s.status==="connecting"?"np.connecting":(s.message||"np.connecting"));
+  }
+}
+async function tick(){
+  try{
+    const r=await fetch("/api/state");const s=await r.json();
+    if(s.networks)renderNets(s.networks);
+    if(s.status==="connecting"||s.status==="online"||s.status==="error"){
+      if($("view-status").classList.contains("hidden"))show("status");
+      renderStatus(s);
+    }
+  }catch(e){}
+}
+loadI().then(()=>{tick();poll=setInterval(tick,2000);});
+</script>
+</body>
+</html>

@@ -222,7 +222,7 @@ def run_worker(server: WebServer) -> None:
     sound_dir_sensor.start(bus)
 
     server.emit("ready", {"tool_count": agent.tool_count})
-    leds.set_lifecycle("idle")
+    leds.set_lifecycle("paused" if server.paused.is_set() else "idle")
 
     while not bus.stop_signal().is_set():
         event = bus.get(timeout=1.0)

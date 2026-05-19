@@ -227,6 +227,40 @@ error > battery_low > lifecycle (wake/listening/thinking/sleeping)
 
 **Verified run:** "hey buddy, merk dir: wenn ich ‚wo ist der Ball' sage, setz dich und wedle" → Buddy calls `remember(text)`. The JSON file contains the memory. On the next turn (even after a restart) the memory automatically appears in the system prompt → Buddy reacts consistently.
 
+### What was built in phase 12 — WiFi onboarding
+
+- `aidog/netcfg/nm.py` — thin `nmcli` wrapper: `connectivity()`, `is_online()`,
+  `wifi_device()`, `active_wifi_profile()` (to restore later), `scan()` (dedup
+  per SSID keeping strongest signal, handles `\:`-escaped SSIDs),
+  `start_hotspot()`/`stop_hotspot()`, `connect()`, `up_profile()`.
+- `aidog/netcfg/manager.py` — `Session` (thread-shared state between manager
+  and portal) + `run()` state machine: CHECK (≤45 s for a known network) →
+  SCAN-cache (before AP, single-radio) → AP-UP → portal wait → CONNECT →
+  verify connectivity → restore old profile on failure, otherwise online.
+- `aidog/netcfg/portal/server.py` — FastAPI captive portal on port 80:
+  `/`, `/api/i18n` (with `?lang=` override), `/api/state`, `/api/connect`,
+  `/api/rescan`; OS probe paths + catch-all → 302 to `/` so the captive
+  sheet pops on iOS/Android/Windows.
+- `aidog/netcfg/portal/static/index.html` — mobile, DE/EN with a top-right
+  language toggle: network list (signal bars, lock icon) → password →
+  connect → status polling (spinner / online with new IP / localized error).
+- `aidog/netcfg/__init__.py` `provision()` — runs the portal in a daemon
+  thread, blocks in the manager; returns immediately if already online.
+- `aidog/i18n.py` — `np.*` string namespace, German + English.
+- `main.py netcfg` CLI (`--ap-password`, `--port`).
+- **`--start-paused`** for `main.py web` (and `PAUSED=1 ./start.sh`): the
+  `WebServer` boots with `paused` set, LED lifecycle `paused` from the start;
+  no LLM calls until the user clicks Resume. Safe autostart default.
+- `deploy/ai-robo-dog-netcfg.service` (root, runs onboarding first, fixed
+  WPA2 setup password so the home-WiFi password isn't sent over an open AP)
+  and `deploy/ai-robo-dog.service` (dog user, web UI `--start-paused`).
+- README: "Running the dog" TL;DR, WiFi onboarding, systemd autostart,
+  SunFounder hardware-docs link.
+
+**Tested non-disruptively** (scan, connectivity, profile detection, imports,
+all routes, CLI flags). The AP raise itself drops the Pi's WiFi/SSH, so the
+live AP+captive-portal test is done locally on the device, not over SSH.
+
 ---
 
 ## Sound pipeline after the uv migration — solved (status 2026-05-15 14:00)

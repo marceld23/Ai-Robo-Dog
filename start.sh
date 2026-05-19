@@ -2,15 +2,22 @@
 # Start Buddy (aidog web UI on port 8080).
 #
 # Usage:
-#   ./start.sh                # foreground, logs to stdout, Ctrl+C to quit
-#   ./start.sh --background   # in the background, logs to /tmp/aidog.log
-#   PORT=9000 ./start.sh      # different port
+#   ./start.sh                  # foreground, logs to stdout, Ctrl+C to quit
+#   ./start.sh --background     # in the background, logs to /tmp/aidog.log
+#   PORT=9000 ./start.sh        # different port
+#   PAUSED=1 ./start.sh         # boot inert; act only after Web UI "Resume"
+#
+# Env:
+#   PAUSED=1   pass --start-paused (safe default for unattended starts)
+#   PORT, HOST override bind
 set -eu
 
 cd "$(dirname "$0")"
 
 PORT="${PORT:-8080}"
 HOST="${HOST:-0.0.0.0}"
+PAUSED_FLAG=""
+[ "${PAUSED:-0}" = "1" ] && PAUSED_FLAG="--start-paused"
 
 # Clean up old hangs — previous web process or stuck Pidog init.
 if pgrep -f "main\.py (web|listen)" > /dev/null; then
@@ -51,9 +58,11 @@ PI_IP=$(hostname -I 2>/dev/null | awk '{print $1}')
 echo ">> Buddy startet auf http://${PI_IP:-localhost}:${PORT}"
 echo ">> 45 Tools, Wake-Word hey-buddy, Touch + Ultraschall + Sound + Battery"
 
+[ -n "$PAUSED_FLAG" ] && echo ">> start-paused: no LLM calls until you click Resume in the Web UI"
+
 if [ "${1:-}" = "--background" ]; then
     LOG="/tmp/aidog.log"
-    nohup uv run python main.py web --host "$HOST" --port "$PORT" \
+    nohup uv run python main.py web --host "$HOST" --port "$PORT" $PAUSED_FLAG \
         > "$LOG" 2>&1 &
     PID=$!
     echo ">> PID $PID · Logs: tail -f $LOG"
@@ -61,4 +70,4 @@ if [ "${1:-}" = "--background" ]; then
     exit 0
 fi
 
-exec uv run python main.py web --host "$HOST" --port "$PORT"
+exec uv run python main.py web --host "$HOST" --port "$PORT" $PAUSED_FLAG

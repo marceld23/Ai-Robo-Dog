@@ -34,7 +34,8 @@ _INDEX_HTML = _STATIC / "index.html"
 
 
 class WebServer:
-    def __init__(self, agent: PiDogAgent, bus: SensorBus, leds: Any) -> None:
+    def __init__(self, agent: PiDogAgent, bus: SensorBus, leds: Any,
+                 start_paused: bool = False) -> None:
         self.agent = agent
         self.bus = bus
         self.leds = leds
@@ -48,8 +49,12 @@ class WebServer:
 
         self.stop_soft = threading.Event()
         self.stop_hard = threading.Event()
-        # Pause switch: sensors keep running, but no LLM call.
+        # Pause switch: sensors keep running, but no LLM call. With
+        # start_paused the dog boots inert and only acts after the user
+        # clicks "Resume" in the Web UI (safe autostart default).
         self.paused = threading.Event()
+        if start_paused:
+            self.paused.set()
 
         # Interrupt the LLM loop when stop-soft is pressed — the running tool
         # still finishes, but no new tool call.

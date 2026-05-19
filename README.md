@@ -4,12 +4,15 @@ LLM-driven dog on a SunFounder PiDog v2 (Raspberry Pi 4). The dog never speaks
 words — it barks, growls, howls, moves, and shows its mood via the chest LED
 strip. Driven by an LLM through tool-calling.
 
-**Status:** Phases 0–11 done (skeleton, 45 skills, function-calling, Whisper STT,
+Hardware & SunFounder docs: <https://docs.sunfounder.com/projects/pidog/en/latest/>
+
+**Status:** Phases 0–12 done (skeleton, 45 skills, function-calling, Whisper STT,
 wake-word, vision with gpt-5.4-mini, sensor bus with touch + ultrasonic +
 sound-direction + battery, LED lifecycle incl. pause, critical shutdown, memory
 for teaching tricks, **Web UI with live telemetry, camera, memory editor, pause
-toggle, voice-stop**). Remaining: phase 8 (personality tuning, ongoing) and
-phase 9 (robustness / 30-min stress test).
+toggle, voice-stop**, **WiFi onboarding captive portal**, bilingual DE/EN).
+Remaining: phase 8 (personality tuning, ongoing) and phase 9 (robustness /
+30-min stress test).
 
 Open plan & architecture: [PLAN.md](PLAN.md) · How completed phases were built:
 [BUILD_LOG.md](BUILD_LOG.md) · Conventions for AI assistants: [AGENTS.md](AGENTS.md)
@@ -140,6 +143,52 @@ UI at `http://<pi-ip>:8080`. Mobile-responsive. Provides:
 **Safety note:** every `call`/`sequence` invocation initializes the real
 hardware. The `Pidog()` constructor drives the servos to a calibrated start
 position — the dog must be standing safely and stably beforehand.
+
+## Running the dog — TL;DR
+
+1. Make sure the dog stands safely (servos move on start).
+2. `cd /home/dog/Ai-Robo-Dog && ./start.sh --background`
+3. Open `http://<pi-ip>:8080` on your phone/laptop.
+4. If you started paused (recommended), click **Resume** in the Web UI —
+   only then does Buddy talk to the LLM.
+5. Stop it: `pkill -f 'main.py web'` (or `kill <PID>` shown by start.sh).
+
+```bash
+./start.sh --background          # normal, active immediately
+PAUSED=1 ./start.sh --background # boot inert, act only after Web UI "Resume"
+```
+
+## WiFi onboarding (phase 12)
+
+If the dog finds no known WiFi within ~45 s of boot, it opens its own
+access point **`ai-robo-dog-wifi`** with a captive portal (DE/EN). Connect a
+phone to it, the setup page pops up automatically (or open
+`http://192.168.4.1`), pick your network, enter the password — the dog joins
+it and the normal Web UI becomes reachable at the new IP.
+
+Manual run (needs root for the AP + port 80):
+
+```bash
+sudo /home/dog/.local/bin/uv run python main.py netcfg --ap-password robodogsetup
+```
+
+## Autostart on boot (systemd)
+
+Two units in [`deploy/`](deploy/): `ai-robo-dog-netcfg.service` (root, runs
+the WiFi onboarding first) and `ai-robo-dog.service` (the dog user, starts
+the Web UI **paused** so it boots inert and only acts after you click
+*Resume*).
+
+```bash
+sudo cp deploy/ai-robo-dog-netcfg.service deploy/ai-robo-dog.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now ai-robo-dog-netcfg.service ai-robo-dog.service
+journalctl -u ai-robo-dog -f      # follow logs
+```
+
+After a reboot the dog comes up online and **paused** — open the Web UI and
+press **Resume** to let it react. Edit the units if your paths differ
+(`uv` location, working directory, AP password).
 
 ## Configuration
 

@@ -1,0 +1,22 @@
+[Unit]
+Description=Ai-Robo-Dog (LLM robot dog web UI)
+# Only start once WiFi onboarding confirmed the dog is online.
+After=ai-robo-dog-netcfg.service network-online.target sound.target
+Wants=network-online.target
+Requires=ai-robo-dog-netcfg.service
+
+[Service]
+Type=simple
+# The dog user is in the gpio/i2c/spi/audio groups (Pidog hardware access).
+User=dog
+WorkingDirectory=/home/dog/Ai-Robo-Dog
+# SDL must use PipeWire-Pulse or the voicehat gets no audio.
+Environment=SDL_AUDIODRIVER=pulse
+# --start-paused: boot inert. The dog does NOT talk to the LLM until the
+# user opens the Web UI and clicks "Resume". Safe default for autostart.
+ExecStart=/home/dog/.local/bin/uv run python main.py web --host 0.0.0.0 --port 8080 --start-paused
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

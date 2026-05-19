@@ -1,0 +1,23 @@
+[Unit]
+Description=Ai-Robo-Dog WiFi onboarding (captive portal AP fallback)
+# Run after the network stack is up so NetworkManager had a chance to
+# auto-connect a known WiFi; we only open the AP if that failed.
+After=NetworkManager.service network.target
+Wants=NetworkManager.service
+Before=ai-robo-dog.service
+
+[Service]
+Type=oneshot
+# Root: binds port 80 and runs `nmcli device wifi hotspot` / connect.
+User=root
+WorkingDirectory=/home/dog/Ai-Robo-Dog
+# Blocks until the dog is online (returns 0); opens ai-robo-dog-wifi +
+# captive portal if no known network is reachable within ~45 s.
+# Set a fixed WPA2 setup password here so the entered home-WiFi password
+# is not sent over an open AP. Print it on the device.
+ExecStart=/home/dog/.local/bin/uv run python main.py netcfg --ap-password robodogsetup
+TimeoutStartSec=infinity
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
