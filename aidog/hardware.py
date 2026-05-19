@@ -23,6 +23,15 @@ _flow = None
 _camera_started = False
 _lock = threading.Lock()
 _startup_wait_sec = 1.0
+
+# Camera freeze detection: a frontend timeout leaves the last frame stuck in
+# Vilib.img (not None), so the None-check never fires and the UI shows a
+# frozen still forever. Track a cheap frame fingerprint + the last time we
+# saw a genuinely new frame.
+_cam_last_sig: int | None = None
+_cam_frozen_count = 0
+_cam_last_fresh = 0.0
+_CAM_FREEZE_LIMIT = 4  # identical frames in a row → force a camera restart
 _patched = False
 _audio_prepared = False
 _voicehat_sink = "alsa_output.platform-soc_sound.stereo-fallback"
@@ -214,6 +223,13 @@ def camera_snapshot_b64() -> str:
         time.sleep(0.3)
         _ensure_started()
 
+    def _sig(frame) -> int:
+        # Cheap fingerprint: sum of a sparse sample. Changes on any real new
+        # frame, ~free to compute. Avoids hashing the full array every call.
+        return int(frame[::32, ::32].sum())
+
+    global _cam_last_sig, _cam_frozen_count, _cam_last_fresh
+
     with _lock:
         _ensure_started()
     img = Vilib.img
@@ -221,13 +237,33 @@ def camera_snapshot_b64() -> str:
         time.sleep(0.5)
         img = Vilib.img
     if img is None:
-        # Recovery attempt: restart the camera stream and wait again.
+        # No frame at all → restart the stream and wait again.
         with _lock:
             _restart()
         time.sleep(0.3)
         img = Vilib.img
     if img is None:
         raise RuntimeError("camera frame not available (after restart)")
+
+    # Freeze detection: same frame repeatedly → frontend hung, restart even
+    # though Vilib.img is not None.
+    sig = _sig(img)
+    if sig == _cam_last_sig:
+        _cam_frozen_count += 1
+        if _cam_frozen_count >= _CAM_FREEZE_LIMIT:
+            log.warning("camera frozen (%d identical frames) — restarting",
+                        _cam_frozen_count)
+            with _lock:
+                _restart()
+            time.sleep(0.3)
+            img = Vilib.img if Vilib.img is not None else img
+            _cam_frozen_count = 0
+            sig = _sig(img)
+    else:
+        _cam_frozen_count = 0
+        _cam_last_fresh = time.time()
+    _cam_last_sig = sig
+
     # Resize to max 512×512 (keep aspect ratio) + JPEG encode q=75
     h, w = img.shape[:2]
     scale = 512 / max(h, w)
@@ -237,6 +273,14 @@ def camera_snapshot_b64() -> str:
     if not ok:
         raise RuntimeError("jpeg encode failed")
     return base64.b64encode(buf).decode("ascii")
+
+
+def camera_fresh_age_s() -> float:
+    """Seconds since the camera last produced a genuinely new frame.
+    -1 if no fresh frame seen yet (camera never delivered)."""
+    if _cam_last_fresh == 0.0:
+        return -1.0
+    return round(time.time() - _cam_last_fresh, 1)
 
 
 def is_initialized() -> bool:

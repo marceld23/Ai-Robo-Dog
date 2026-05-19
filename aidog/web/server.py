@@ -125,6 +125,11 @@ class WebServer:
             out["sound_age_ms"] = -1
         out["led_lifecycle"] = self.leds.current_lifecycle
         out["led_mood"] = self.leds.current_mood
+        try:
+            from .. import hardware
+            out["cam_age_s"] = hardware.camera_fresh_age_s()
+        except Exception:
+            out["cam_age_s"] = -1
         return out
 
     def get_camera_jpeg(self) -> bytes | None:

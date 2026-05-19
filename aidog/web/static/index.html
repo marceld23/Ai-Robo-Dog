@@ -412,10 +412,7 @@ function refreshCamera() {
   const img = $("cam-img");
   const url = `/api/camera.jpg?t=${Date.now()}`;
   const tmp = new Image();
-  tmp.onload = () => {
-    img.src = tmp.src;
-    $("cam-meta").textContent = new Date().toLocaleTimeString();
-  };
+  tmp.onload = () => { img.src = tmp.src; };  // meta is set by renderTelemetry
   tmp.onerror = () => { $("cam-meta").textContent = T("ui.camera_unavailable"); };
   tmp.src = url;
 }
@@ -428,6 +425,15 @@ refreshCamera();
 
 // Telemetrie-Render: Distanz, Akku, Tilt, LED, Sound-Compass.
 function renderTelemetry(t) {
+  const cm = $("cam-meta");
+  if (t.cam_age_s === undefined || t.cam_age_s < 0) {
+    cm.textContent = T("ui.camera_unavailable"); cm.style.color = "var(--err)";
+  } else if (t.cam_age_s < 6) {
+    cm.textContent = "● live"; cm.style.color = "var(--acc)";
+  } else {
+    cm.textContent = T("ui.cam_frozen", {s: Math.round(t.cam_age_s)});
+    cm.style.color = "var(--err)";
+  }
   const dist = $("tlm-dist");
   if (t.distance_cm !== null && t.distance_cm !== undefined) {
     dist.textContent = `${t.distance_cm.toFixed(1)} cm`;
