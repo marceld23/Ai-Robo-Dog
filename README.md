@@ -17,11 +17,61 @@ Remaining: phase 8 (personality tuning, ongoing) and phase 9 (robustness /
 Open plan & architecture: [PLAN.md](PLAN.md) · How completed phases were built:
 [BUILD_LOG.md](BUILD_LOG.md) · Conventions for AI assistants: [AGENTS.md](AGENTS.md)
 
+## Prerequisite: SunFounder hardware bring-up (one-time, before this project)
+
+This repo contains only the LLM agent. The PiDog hardware libraries are
+SunFounder's (GPLv3) and must be installed separately first. Canonical guide:
+<https://docs.sunfounder.com/projects/pidog/en/latest/python/python_start/install_all_modules.html>
+
+The steps below reconstruct how this device was set up (Raspberry Pi OS /
+Debian, Python 3.13). Install **in this order** — `robot-hat` is the base
+layer, `pidog` depends on it. Each installs system-wide.
+
+```bash
+# 1. robot-hat (base hardware library)
+cd ~ && git clone https://github.com/sunfounder/robot-hat.git
+cd robot-hat && sudo python3 install.py
+
+# 2. vilib (camera / vision)
+cd ~ && git clone https://github.com/sunfounder/vilib.git
+cd vilib && sudo python3 install.py
+
+# 3. pidog (the dog itself)
+cd ~ && git clone https://github.com/sunfounder/pidog.git
+cd pidog && sudo python3 setup.py install   # pidog has no install.py; pyproject/setup install
+
+# 4. I2S speaker + mic (the voicehat audio HAT)
+sudo bash ~/pidog/i2samp.sh                  # answer yes to the prompts
+
+# 5. reboot so the dtoverlay/soundcard comes up
+sudo reboot
+```
+
+Verified versions on this device: `robot_hat 2.5.2a1`, `vilib 0.3.18`,
+`pidog 1.3.13`. The three repos stay in `~/` as reference sources (do not
+edit them — see [AGENTS.md](AGENTS.md)); the importable packages live under
+`/usr/local/lib/python3.13/dist-packages/`.
+
+### Calibrate the dog (one-time, after assembly)
+
+The legs/head/tail servos have mechanical offsets that must be trimmed once.
+Stand the dog safely (it will move), then:
+
+```bash
+sudo python3 ~/pidog/examples/0_calibration.py
+```
+
+Follow the on-screen prompts to zero each servo; saving writes the offsets to
+`~/.config/pidog/pidog.conf` (e.g. `legs_servo_offset_list = [...]`). This
+project reads that file via the SunFounder libs — no calibration data lives
+in this repo. Re-run calibration if you re-assemble or a servo slips.
+
 ## Setup
 
-Requirements: PiDog v2 with a working SunFounder install (`pidog`, `vilib`,
-`robot_hat` installed system-wide under `/usr/local/lib/python3.13/dist-packages/`),
-Python 3.13, [uv](https://docs.astral.sh/uv/).
+Requirements: PiDog v2 with the SunFounder bring-up above completed (`pidog`,
+`vilib`, `robot_hat` installed system-wide under
+`/usr/local/lib/python3.13/dist-packages/`), Python 3.13,
+[uv](https://docs.astral.sh/uv/).
 
 ```bash
 cd /home/dog/Ai-Robo-Dog
