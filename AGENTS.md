@@ -110,8 +110,10 @@ by the user — don't ask "should I test", give them the exact commands.
 - **Change system packages via pip.** `pip3 install ...` without a venv
   crashes due to PEP 668; that is intentional, not a problem to work around
   with `--break-system-packages`.
-- **Let README/AGENTS/PLAN diverge in parallel.** When the plan changes, keep
-  them in sync. These three are the only doc files we deliberately maintain.
+- **Let README/AGENTS/PLAN/BUILD_LOG diverge in parallel.** When the plan
+  changes, keep them in sync. PLAN.md = architecture + open work; BUILD_LOG.md
+  = history of completed phases; README = user-facing; AGENTS = these
+  conventions. These are the only doc files we deliberately maintain.
 
 ## Phase workflow
 
@@ -120,8 +122,10 @@ When the user says "do phase X":
 1. Find the phase in the PLAN, read its content + success test.
 2. If the phase changes hardware behavior (movement, sound), explicitly ask
    whether the hardware is ready *before* you trigger tool calls.
-3. Finish the phase, then update PLAN.md: status to ✅, a short "What was built
-   in phase X" note under the phase table. Don't document every bugfix — only
+3. Finish the phase, then: set its status to ✅ in the PLAN.md phase table,
+   and add a short "What was built in phase X" note to **BUILD_LOG.md** (not
+   PLAN.md — PLAN.md holds only architecture reference + open planning, the
+   build history lives in BUILD_LOG.md). Don't document every bugfix — only
    the completed phases.
 4. Update the README when new CLI commands or setup steps are added.
 

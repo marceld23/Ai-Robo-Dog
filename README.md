@@ -11,7 +11,8 @@ for teaching tricks, **Web UI with live telemetry, camera, memory editor, pause
 toggle, voice-stop**). Remaining: phase 8 (personality tuning, ongoing) and
 phase 9 (robustness / 30-min stress test).
 
-Detailed plan: [PLAN.md](PLAN.md) · Conventions for AI assistants: [AGENTS.md](AGENTS.md)
+Open plan & architecture: [PLAN.md](PLAN.md) · How completed phases were built:
+[BUILD_LOG.md](BUILD_LOG.md) · Conventions for AI assistants: [AGENTS.md](AGENTS.md)
 
 ## Setup
 
@@ -155,7 +156,8 @@ Ai-Robo-Dog/
 ├── main.py           # CLI
 ├── config.yaml
 ├── secrets.env       # gitignored
-├── PLAN.md           # implementation plan
+├── PLAN.md           # architecture + open plan (phases 8, 9, 12)
+├── BUILD_LOG.md      # how the completed phases were built
 ├── AGENTS.md         # for AI assistants
 └── aidog/
     ├── hardware.py   # Pidog/ActionFlow singleton
