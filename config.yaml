@@ -1,0 +1,74 @@
+language: de
+
+logging:
+  level: INFO
+  format: "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+
+hardware:
+  startup_wait_sec: 1.0
+  initial_posture: stand   # stand | sit | lie
+
+led:
+  default_brightness: 1.0
+  idle_timeout_sec: 30
+  low_battery_brightness: 0.5
+  moods:
+    happy:    {style: breath, color: pink,    bps: 2.0}
+    playful:  {style: boom,   color: magenta, bps: 2.5}
+    love:     {style: breath, color: pink,    bps: 1.0}
+    curious:  {style: listen, color: cyan,    bps: 1.0}
+    alert:    {style: breath, color: yellow,  bps: 2.0}
+    angry:    {style: bark,   color: red,     bps: 3.0}
+    scared:   {style: boom,   color: yellow,  bps: 4.0}
+    sad:      {style: breath, color: blue,    bps: 0.4}
+    sleepy:   {style: breath, color: blue,    bps: 0.2}
+
+# Phase 2+ — kept here so future phases just pick this up.
+wake:
+  engine: vosk
+  model: ./models/vosk-model-small-de-0.15
+  phrases: ["hey buddy"]
+  cue_sound: single_bark_2  # kurzes "yip" als Wake-Quittung
+
+audio:
+  sample_rate: 16000
+  vad_aggressiveness: 1
+  max_record_sec: 8
+  silence_end_sec: 1.5
+  min_voice_sec: 0.3
+
+stt:
+  provider: openai
+  model: whisper-1
+  language: de
+
+llm:
+  provider: openai
+  model: gpt-5.4-mini
+  vision_model: gpt-5.4-mini  # multimodal, gleicher Chat-Verlauf wie text
+  max_history_turns: 20
+  max_tool_iterations: 8
+  tool_choice: required
+  temperature: 0.7
+
+sensors:
+  ultrasonic:
+    too_close_cm: 10
+    debounce_sec: 3
+  imu:
+    abnormal_angle_deg: 30
+    abnormal_hold_sec: 0.5
+    fall_acc_threshold: 4000
+  sound_direction:
+    debounce_sec: 1
+    ignore_when_acting: true
+  battery:
+    poll_interval_sec: 30
+    average_window: 5
+    zones:
+      energetic: 7.8
+      normal:    7.2
+      tired:     6.8
+      sleepy:    6.4
+      exhausted: 6.0
+      critical:  5.8

@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1a1a1a">
+<title>Buddy</title>
+<style>
+  :root {
+    --bg: #0f1115;
+    --panel: #1a1d24;
+    --panel-2: #232730;
+    --border: #2d323d;
+    --text: #e6e8ec;
+    --muted: #8a8f9a;
+    --accent: #4caf50;
+    --warn: #ffb300;
+    --danger: #e53935;
+    --gap: 12px;
+    --radius: 8px;
+    --tap: 44px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body {
+    font: 16px/1.4 system-ui, -apple-system, sans-serif;
+    background: var(--bg); color: var(--text);
+    overscroll-behavior: contain;
+  }
+  header {
+    position: sticky; top: 0; z-index: 10;
+    background: var(--panel); border-bottom: 1px solid var(--border);
+    padding: 8px 12px; display: flex; align-items: center; gap: 8px;
+    flex-wrap: wrap;
+  }
+  header h1 { font-size: 18px; margin: 0 8px 0 0; }
+  .pill {
+    padding: 3px 8px; border-radius: 999px; font-size: 12px;
+    background: var(--panel-2); border: 1px solid var(--border);
+  }
+  .pill.ok { background: #1b3320; border-color: #2e6d3a; }
+  .pill.warn { background: #3a2f12; border-color: #856820; }
+  .pill.err { background: #3a1818; border-color: #7a2828; }
+  #settings-btn { margin-left: auto; }
+  button {
+    font: inherit; color: var(--text); background: var(--panel-2);
+    border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 0 12px; min-height: var(--tap); cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  button:active { transform: scale(0.97); }
+  button.danger { background: #5a1c1c; border-color: var(--danger); }
+  button.warn { background: #4a3a14; border-color: var(--warn); }
+  button.primary { background: #1d4a25; border-color: var(--accent); }
+  main { padding: var(--gap); display: grid; gap: var(--gap); }
+  .panel {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 12px;
+  }
+  .panel h2 {
+    font-size: 14px; margin: 0 0 8px; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .stop-row { display: flex; gap: 8px; }
+  .stop-row button { flex: 1; }
+  #log {
+    height: 30vh; min-height: 180px; overflow-y: auto;
+    font: 13px/1.4 ui-monospace, SFMono-Regular, monospace;
+    background: var(--panel-2); border-radius: var(--radius);
+    padding: 8px;
+  }
+  .log-entry { padding: 2px 0; border-bottom: 1px solid var(--border); }
+  .log-entry:last-child { border-bottom: 0; }
+  .log-entry .ts { color: var(--muted); margin-right: 6px; }
+  .log-entry.wake .kind, .log-entry.transcribed .kind { color: #6cb1ff; }
+  .log-entry.sensor_event .kind, .log-entry.touch .kind, .log-entry.too_close .kind { color: #ffb74d; }
+  .log-entry.turn_end .kind { color: #aed581; }
+  .log-entry.turn_error .kind, .log-entry.error .kind { color: #ef5350; }
+  .log-entry.llm_input {
+    background: rgba(76, 175, 80, 0.12);
+    border-left: 3px solid var(--accent); padding: 4px 6px;
+    margin: 4px 0 2px; border-radius: 0 var(--radius) var(--radius) 0;
+  }
+  .log-entry.llm_input .kind { color: var(--accent); font-weight: 600; }
+  .log-entry.llm_input::before { content: "→ LLM "; color: var(--accent); font-weight: 600; }
+  .log-entry.turn_end {
+    background: rgba(174, 213, 129, 0.12);
+    border-left: 3px solid #aed581; padding: 4px 6px;
+    margin: 2px 0 4px; border-radius: 0 var(--radius) var(--radius) 0;
+  }
+  .log-entry.turn_end::before { content: "← Buddy "; color: #aed581; font-weight: 600; }
+  .log-entry.llm_iteration { padding-left: 18px; opacity: 0.85; }
+  .log-entry.llm_iteration .kind { color: #6cb1ff; font-size: 11px; }
+  .log-entry.llm_tool_call { padding-left: 26px; }
+  .log-entry.llm_tool_call .kind { color: #aed581; font-size: 12px; }
+  .log-entry.turn_skipped { opacity: 0.6; font-style: italic; }
+  .log-entry.paused .kind { color: var(--warn); }
+  #pause.active { background: var(--warn); border-color: var(--warn); color: #000; }
+  .log-entry pre { margin: 2px 0 0 0; white-space: pre-wrap; word-break: break-word; }
+  .input-row { display: flex; gap: 8px; }
+  .input-row input { flex: 1; min-height: var(--tap); padding: 0 12px;
+    background: var(--panel-2); border: 1px solid var(--border);
+    border-radius: var(--radius); color: var(--text); font: inherit; }
+  details summary {
+    list-style: none; cursor: pointer; padding: 8px 0;
+    font-size: 14px; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  details summary::-webkit-details-marker { display: none; }
+  details summary::before { content: "▶ "; font-size: 10px; }
+  details[open] summary::before { content: "▼ "; }
+  .tool-cat { margin: 8px 0; }
+  .tool-cat h3 { font-size: 12px; color: var(--muted); margin: 4px 0; }
+  .tool-buttons { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tool-buttons button { font-size: 13px; min-height: 36px; padding: 0 10px; }
+  .memory-list { display: flex; flex-direction: column; gap: 6px; }
+  .mem-item {
+    display: flex; gap: 6px; align-items: center;
+    background: var(--panel-2); border-radius: var(--radius); padding: 6px 8px;
+  }
+  .mem-item .text { flex: 1; word-break: break-word; }
+  .mem-item button { min-height: 36px; min-width: 36px; padding: 0 8px; font-size: 14px; }
+  .mem-add { display: flex; gap: 6px; margin-top: 6px; }
+  .mem-add input { flex: 1; min-height: var(--tap); padding: 0 10px;
+    background: var(--panel-2); border: 1px solid var(--border);
+    border-radius: var(--radius); color: var(--text); font: inherit; }
+  .modal-bg {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+    display: none; align-items: center; justify-content: center; z-index: 100;
+  }
+  .modal-bg.show { display: flex; }
+  .modal {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 16px; max-width: 90vw; width: 400px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .modal h3 { margin: 0 0 4px; }
+  .modal label { display: flex; flex-direction: column; gap: 4px; font-size: 14px; }
+  .modal input { padding: 8px; min-height: var(--tap);
+    background: var(--panel-2); border: 1px solid var(--border);
+    border-radius: var(--radius); color: var(--text); font: inherit;
+    font-family: ui-monospace, monospace; }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+  #cam-img {
+    width: 100%; max-height: 60vh; object-fit: contain;
+    background: #000; border-radius: var(--radius); display: block;
+  }
+  .cam-meta { color: var(--muted); font-size: 12px; margin-top: 6px; text-align: right; }
+  .tlm-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr);
+    gap: 8px; font-size: 13px;
+  }
+  .tlm-cell {
+    background: var(--panel-2); padding: 8px 10px; border-radius: var(--radius);
+    display: flex; flex-direction: column; gap: 2px;
+  }
+  .tlm-label { color: var(--muted); font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.05em; }
+  .tlm-value { font-size: 16px; font-weight: 600; font-family: ui-monospace, monospace; }
+  .tlm-value.warn { color: var(--warn); }
+  .tlm-value.err { color: var(--danger); }
+  .tlm-value.ok { color: var(--accent); }
+  .compass {
+    width: 80px; height: 80px; margin: 4px auto;
+    border: 2px solid var(--border); border-radius: 50%;
+    position: relative; background: var(--panel-2);
+  }
+  .compass::before, .compass::after {
+    content: ""; position: absolute; background: var(--muted);
+  }
+  .compass::before { top: 0; left: 50%; width: 1px; height: 8px; transform: translateX(-50%); }
+  .compass::after { left: 0; top: 50%; height: 1px; width: 8px; }
+  .compass .label-n { position: absolute; top: -16px; left: 50%; transform: translateX(-50%);
+    font-size: 10px; color: var(--muted); }
+  .compass .needle {
+    position: absolute; top: 50%; left: 50%; width: 2px; height: 36px;
+    background: var(--accent); transform-origin: 50% 0; transform: translate(-50%, 0) rotate(0deg);
+    border-radius: 1px;
+  }
+  .compass .needle.stale { background: var(--muted); opacity: 0.4; }
+  @media (min-width: 900px) {
+    main { grid-template-columns: 2fr 1fr; }
+    #panel-stop, #panel-log, #panel-input, #panel-tools { grid-column: 1; }
+    #panel-camera, #panel-telemetry, #panel-memory { grid-column: 2; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>🐾 Buddy</h1>
+  <span id="status-pill" class="pill">verbinde…</span>
+  <span id="key-pill" class="pill">key?</span>
+  <button id="settings-btn" type="button">⚙️</button>
+</header>
+
+<main>
+  <section id="panel-stop" class="panel">
+    <h2>Eingriff</h2>
+    <div class="stop-row">
+      <button id="stop" class="danger" type="button" style="font-size:18px;">⏹ STOP</button>
+      <button id="pause" type="button" style="font-size:18px;">⏸ Pause</button>
+    </div>
+    <p id="pause-hint" style="margin:6px 0 0;font-size:12px;color:var(--muted);">
+      Pause: Sensoren laufen weiter, aber kein LLM-Call.
+    </p>
+  </section>
+
+  <section id="panel-camera" class="panel">
+    <h2>Sicht <button id="cam-pause" type="button"
+        style="float:right;min-height:28px;padding:0 8px;font-size:12px;">⏸</button></h2>
+    <img id="cam-img" alt="Buddys Sicht" loading="lazy">
+    <div class="cam-meta" id="cam-meta">—</div>
+  </section>
+
+  <section id="panel-telemetry" class="panel">
+    <h2>Sensoren</h2>
+    <div class="tlm-grid">
+      <div class="tlm-cell">
+        <span class="tlm-label">Distanz vorne</span>
+        <span id="tlm-dist" class="tlm-value">—</span>
+      </div>
+      <div class="tlm-cell">
+        <span class="tlm-label">Akku</span>
+        <span id="tlm-bat" class="tlm-value">—</span>
+      </div>
+      <div class="tlm-cell">
+        <span class="tlm-label">Pitch / Roll</span>
+        <span id="tlm-tilt" class="tlm-value">—</span>
+      </div>
+      <div class="tlm-cell">
+        <span class="tlm-label">LED</span>
+        <span id="tlm-led" class="tlm-value">—</span>
+      </div>
+      <div class="tlm-cell" style="grid-column: 1 / -1; align-items: center;">
+        <span class="tlm-label">Letztes Geräusch (Richtung)</span>
+        <div class="compass">
+          <span class="label-n">N (vorn)</span>
+          <div id="compass-needle" class="needle stale"></div>
+        </div>
+        <span id="tlm-sound" class="tlm-value" style="text-align:center;">—</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="panel-log" class="panel">
+    <h2>Live-Log</h2>
+    <div id="log"></div>
+  </section>
+
+  <section id="panel-input" class="panel">
+    <h2>Anweisung an Buddy</h2>
+    <form id="user-form" class="input-row" onsubmit="return false">
+      <input id="user-text" type="text" placeholder="z.B. setz dich hin"
+             autocomplete="off" inputmode="text">
+      <button id="user-send" class="primary" type="submit">Senden</button>
+    </form>
+  </section>
+
+  <section id="panel-memory" class="panel">
+    <h2>Erinnerungen</h2>
+    <div id="memories" class="memory-list"></div>
+    <div class="mem-add">
+      <input id="mem-input" type="text" placeholder="Neue Erinnerung…">
+      <button id="mem-add-btn" type="button">+</button>
+    </div>
+  </section>
+
+  <section id="panel-tools" class="panel">
+    <details>
+      <summary>Direkte Tool-Calls (Debug)</summary>
+      <div id="tools"></div>
+    </details>
+  </section>
+</main>
+
+<div id="modal-bg" class="modal-bg">
+  <div class="modal">
+    <h3>OpenAI API Key</h3>
+    <p id="modal-hint" style="margin:0;color:var(--muted);font-size:13px;">
+      Wird per Test-Call validiert.
+    </p>
+    <label>Key (sk-…)
+      <input id="key-input" type="password" autocomplete="off">
+    </label>
+    <label style="flex-direction:row;align-items:center;gap:8px;">
+      <input id="key-persist" type="checkbox" checked> In secrets.env speichern
+    </label>
+    <div class="modal-actions">
+      <button id="modal-cancel" type="button">Abbrechen</button>
+      <button id="modal-save" class="primary" type="button">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const log = $("log");
+const statusPill = $("status-pill");
+const keyPill = $("key-pill");
+
+let ws = null;
+let backoff = 500;
+
+function setStatus(text, cls) {
+  statusPill.textContent = text;
+  statusPill.className = "pill " + (cls || "");
+}
+function setKeyStatus(status) {
+  if (status === "ok") { keyPill.textContent = "key ✓"; keyPill.className = "pill ok"; }
+  else if (status === "missing") { keyPill.textContent = "key fehlt"; keyPill.className = "pill err"; }
+  else { keyPill.textContent = "key " + status; keyPill.className = "pill warn"; }
+}
+
+function addLog(kind, payload) {
+  const div = document.createElement("div");
+  div.className = "log-entry " + (kind || "");
+  const t = new Date().toLocaleTimeString();
+  div.innerHTML = `<span class="ts">${t}</span><span class="kind">${kind}</span>`;
+  let body = null;
+  if (payload && Object.keys(payload).length) {
+    if (kind === "llm_input") {
+      body = `${payload.source}: "${payload.text || ''}"`;
+    } else if (kind === "llm_iteration") {
+      body = `iter ${payload.iteration} (${payload.model}, ${payload.messages_count} msgs)`;
+    } else if (kind === "llm_tool_call") {
+      const args = Object.entries(payload.args || {}).map(([k,v]) => `${k}=${JSON.stringify(v)}`).join(", ");
+      const mark = payload.error ? "✗" : "✓";
+      body = `${mark} ${payload.name}(${args})`;
+      if (payload.result && payload.result !== "ok") body += ` → ${payload.result}`;
+    } else if (kind === "turn_end") {
+      body = (payload.tool_calls || []).join(" · ").trim() || "(keine Tool-Calls)";
+    } else if (kind === "transcribed") {
+      body = `"${payload.text || ''}"`;
+    } else if (kind === "wake") {
+      body = `"${payload.phrase || ''}"`;
+    } else if (kind === "sensor_event") {
+      body = `${payload.kind}: ${JSON.stringify(payload.payload || {})}`;
+    } else {
+      body = typeof payload === "string" ? payload : JSON.stringify(payload, null, 0);
+    }
+  }
+  if (body) {
+    const pre = document.createElement("pre");
+    pre.textContent = body;
+    div.appendChild(pre);
+  }
+  log.appendChild(div);
+  while (log.children.length > 200) log.removeChild(log.firstChild);
+  log.scrollTop = log.scrollHeight;
+}
+
+function connect() {
+  const proto = location.protocol === "https:" ? "wss:" : "ws:";
+  ws = new WebSocket(`${proto}//${location.host}/ws`);
+  ws.onopen = () => { setStatus("verbunden", "ok"); backoff = 500; };
+  ws.onclose = () => {
+    setStatus("getrennt", "err");
+    setTimeout(connect, backoff);
+    backoff = Math.min(backoff * 2, 8000);
+  };
+  ws.onerror = () => ws.close();
+  ws.onmessage = (e) => {
+    const m = JSON.parse(e.data);
+    if (m.kind !== "telemetry") addLog(m.kind, m.payload);
+    if (m.kind === "hello" || m.kind === "key_status") {
+      if (m.payload.key_status) setKeyStatus(m.payload.key_status);
+      else if (m.payload.status) setKeyStatus(m.payload.status);
+    }
+    if (m.kind === "hello" || m.kind === "memory_changed") {
+      if (m.payload.memories) renderMemories(m.payload.memories);
+    }
+    if (m.kind === "telemetry") renderTelemetry(m.payload);
+    if (m.kind === "hello" && m.payload.paused !== undefined) setPauseUI(m.payload.paused);
+    if (m.kind === "paused") setPauseUI(m.payload.value);
+  };
+}
+
+// Camera-Refresh: alle 2s neues Bild ziehen, pausierbar.
+let camPaused = false;
+let camTimer = null;
+function refreshCamera() {
+  if (camPaused) return;
+  const img = $("cam-img");
+  const url = `/api/camera.jpg?t=${Date.now()}`;
+  const tmp = new Image();
+  tmp.onload = () => {
+    img.src = tmp.src;
+    $("cam-meta").textContent = new Date().toLocaleTimeString();
+  };
+  tmp.onerror = () => { $("cam-meta").textContent = "Kamera nicht verfügbar"; };
+  tmp.src = url;
+}
+$("cam-pause").addEventListener("click", () => {
+  camPaused = !camPaused;
+  $("cam-pause").textContent = camPaused ? "▶" : "⏸";
+});
+camTimer = setInterval(refreshCamera, 2000);
+refreshCamera();
+
+// Telemetrie-Render: Distanz, Akku, Tilt, LED, Sound-Compass.
+function renderTelemetry(t) {
+  const dist = $("tlm-dist");
+  if (t.distance_cm !== null && t.distance_cm !== undefined) {
+    dist.textContent = `${t.distance_cm.toFixed(1)} cm`;
+    dist.className = "tlm-value " + (t.distance_cm < 10 ? "err"
+      : t.distance_cm < 25 ? "warn" : "ok");
+  } else { dist.textContent = "—"; dist.className = "tlm-value"; }
+
+  const bat = $("tlm-bat");
+  if (t.battery_v !== null && t.battery_v !== undefined) {
+    bat.textContent = `${t.battery_v.toFixed(2)} V (${t.battery_percent}%, ${t.battery_zone})`;
+    bat.className = "tlm-value " + (
+      t.battery_zone === "critical" || t.battery_zone === "exhausted" ? "err"
+      : ["sleepy", "tired"].includes(t.battery_zone) ? "warn" : "ok");
+  } else { bat.textContent = "—"; bat.className = "tlm-value"; }
+
+  const tilt = $("tlm-tilt");
+  if (t.pitch_deg !== null && t.pitch_deg !== undefined) {
+    tilt.textContent = `${t.pitch_deg.toFixed(0)}° / ${t.roll_deg.toFixed(0)}°`;
+    tilt.className = "tlm-value " + (t.tilt_abnormal ? "err" : "ok");
+  } else { tilt.textContent = "—"; tilt.className = "tlm-value"; }
+
+  $("tlm-led").textContent = (t.led_lifecycle || "—") + (t.led_mood ? ` · ${t.led_mood}` : "");
+  $("tlm-led").className = "tlm-value";
+
+  const needle = $("compass-needle");
+  const sound = $("tlm-sound");
+  if (t.sound_age_ms >= 0) {
+    needle.style.transform = `translate(-50%, 0) rotate(${t.sound_angle_deg}deg)`;
+    // Frisch (<5s) = grün/voll; älter = grau/blass; nach 10min nichts mehr.
+    needle.classList.toggle("stale", t.sound_age_ms > 5000);
+    let ageStr;
+    if (t.sound_age_ms < 1500) ageStr = "gerade jetzt";
+    else if (t.sound_age_ms < 60000) ageStr = `vor ${(t.sound_age_ms/1000).toFixed(1)} s`;
+    else ageStr = `vor ${Math.floor(t.sound_age_ms/60000)} min`;
+    if (t.sound_age_ms > 600000) {
+      sound.textContent = "—";
+      needle.classList.add("stale");
+    } else {
+      sound.textContent = `${t.sound_angle_deg}° (${ageStr})`;
+    }
+  } else {
+    needle.classList.add("stale");
+    sound.textContent = "—";
+  }
+}
+
+function send(obj) {
+  if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(obj));
+}
+
+// User-Input
+$("user-form").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const text = $("user-text").value.trim();
+  if (!text) return;
+  send({ type: "user_message", text });
+  $("user-text").value = "";
+});
+
+// Stop (einheitlich: body_stop + LLM-Abbruch + neutrale Stand-Pose)
+$("stop").addEventListener("click", () => send({ type: "stop" }));
+
+// Pause/Resume Toggle
+let isPaused = false;
+function setPauseUI(paused) {
+  isPaused = paused;
+  const btn = $("pause");
+  btn.textContent = paused ? "▶ Weiter" : "⏸ Pause";
+  btn.classList.toggle("active", paused);
+}
+$("pause").addEventListener("click", () => {
+  send({ type: isPaused ? "resume" : "pause" });
+});
+
+// Memory
+function renderMemories(memories) {
+  const root = $("memories");
+  root.innerHTML = "";
+  if (!memories.length) {
+    root.innerHTML = '<p style="color:var(--muted);font-size:13px;margin:0;">Noch keine Erinnerungen — Buddy lernt von Sprache oder du fügst sie unten hinzu.</p>';
+    return;
+  }
+  for (const m of memories) {
+    const div = document.createElement("div");
+    div.className = "mem-item";
+    div.innerHTML = `<span class="text"></span><button class="edit" title="bearbeiten">✏️</button><button class="del" title="löschen">🗑️</button>`;
+    div.querySelector(".text").textContent = m.text;
+    div.querySelector(".edit").onclick = () => {
+      const next = prompt("Erinnerung bearbeiten:", m.text);
+      if (next !== null && next.trim() !== "" && next !== m.text) {
+        send({ type: "memory_edit", id: m.id, text: next.trim() });
+      }
+    };
+    div.querySelector(".del").onclick = () => {
+      if (confirm("Erinnerung löschen?\n\n" + m.text)) {
+        send({ type: "memory_delete", id: m.id });
+      }
+    };
+    root.appendChild(div);
+  }
+}
+$("mem-add-btn").addEventListener("click", () => {
+  const text = $("mem-input").value.trim();
+  if (!text) return;
+  send({ type: "memory_add", text });
+  $("mem-input").value = "";
+});
+$("mem-input").addEventListener("keydown", (e) => {
+  if (e.key === "Enter") $("mem-add-btn").click();
+});
+
+// Tools
+async function loadTools() {
+  const r = await fetch("/api/tools");
+  const grouped = await r.json();
+  const root = $("tools");
+  root.innerHTML = "";
+  for (const cat of Object.keys(grouped).sort()) {
+    const sec = document.createElement("div");
+    sec.className = "tool-cat";
+    sec.innerHTML = `<h3>${cat}</h3><div class="tool-buttons"></div>`;
+    const btns = sec.querySelector(".tool-buttons");
+    for (const tool of grouped[cat]) {
+      const b = document.createElement("button");
+      b.textContent = tool.name;
+      b.title = tool.description;
+      b.onclick = () => {
+        const args = {};
+        for (const p of tool.params) {
+          const v = prompt(`${tool.name} — ${p.name} (${p.type})`,
+            p.default !== null ? String(p.default) : "");
+          if (v === null) return;
+          if (v !== "") args[p.name] = v;
+        }
+        send({ type: "tool_call", name: tool.name, args });
+      };
+      btns.appendChild(b);
+    }
+    root.appendChild(sec);
+  }
+}
+
+// Settings modal
+$("settings-btn").addEventListener("click", () => $("modal-bg").classList.add("show"));
+$("modal-cancel").addEventListener("click", () => $("modal-bg").classList.remove("show"));
+$("modal-save").addEventListener("click", () => {
+  const key = $("key-input").value.trim();
+  if (!key) return;
+  const persist = $("key-persist").checked;
+  send({ type: "set_openai_key", key, persist });
+  $("key-input").value = "";
+  $("modal-bg").classList.remove("show");
+});
+
+connect();
+loadTools();
+</script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.venv/
+secrets.env
+*.log
+# uv keeps its lockfile in git but the cache is local
+.uv-cache/
+models/
+data/
+sounds/

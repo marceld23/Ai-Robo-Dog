@@ -1,0 +1,56 @@
+MIT License
+
+Copyright (c) 2026 marceld23
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---------------------------------------------------------------------------
+Third-party components / runtime dependencies
+---------------------------------------------------------------------------
+
+The MIT license above covers ONLY the source code in this repository.
+
+This project does NOT bundle or redistribute any third-party code. At runtime
+it imports hardware libraries that are installed separately by the SunFounder
+PiDog installer and are licensed under the GNU General Public License v3:
+
+  - pidog      (SunFounder) - GPLv3
+  - vilib      (SunFounder) - GPLv3
+  - robot_hat  (SunFounder) - GPLv3
+
+These libraries are NOT part of this repository, are NOT listed as
+dependencies in pyproject.toml, and must be obtained from SunFounder. If you
+redistribute a combined/installed system that includes those GPLv3 libraries,
+the combined work as distributed may be subject to the terms of the GPLv3 for
+those components. The code in this repository on its own remains under MIT.
+
+Python dependencies declared in pyproject.toml are under permissive licenses
+compatible with MIT:
+
+  - PyYAML        - MIT
+  - python-dotenv - BSD-3-Clause
+  - openai        - Apache-2.0
+  - webrtcvad     - MIT
+  - vosk          - Apache-2.0
+  - fastapi       - MIT
+  - uvicorn       - BSD-3-Clause
+
+The Vosk German speech model (vosk-model-small-de-0.15), downloaded at setup
+time into models/, is licensed under Apache-2.0 by Alpha Cephei and is not
+included in this repository.
