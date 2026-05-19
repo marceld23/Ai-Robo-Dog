@@ -22,7 +22,7 @@ from typing import Any
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse, JSONResponse, Response
 
-from .. import skills
+from .. import i18n, skills
 from ..agent import PiDogAgent
 from ..memory import MemoryStore
 from ..sensors.bus import SensorBus, SensorEvent
@@ -211,6 +211,11 @@ class WebServer:
         async def api_telemetry() -> JSONResponse:
             t = await asyncio.to_thread(self.get_telemetry)
             return JSONResponse(t)
+
+        @app.get("/api/i18n")
+        async def api_i18n() -> JSONResponse:
+            return JSONResponse({"lang": i18n.lang(),
+                                 "strings": i18n.strings_for_ui()})
 
         @app.get("/", response_class=HTMLResponse)
         async def index() -> HTMLResponse:

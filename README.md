@@ -43,6 +43,30 @@ mkdir -p aidog/sounds
 cp ~/pidog/sounds/*.mp3 ~/pidog/sounds/*.wav aidog/sounds/
 ```
 
+### Language & wake-word model
+
+The project is localized in **German and English**. Set the language once in
+`config.yaml`:
+
+```yaml
+language: de   # or: en
+```
+
+This drives the UI strings, the system prompt, the Whisper STT language, the
+voice "stop" phrases, and which Vosk wake-word model is used. Download the
+model for your language into `models/`:
+
+```bash
+mkdir -p models && cd models
+# German (default):
+curl -L https://alphacephei.com/vosk/models/vosk-model-small-de-0.15.zip -o de.zip && unzip de.zip && rm de.zip
+# English:
+curl -L https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip -o en.zip && unzip en.zip && rm en.zip
+cd ..
+```
+
+`models/` is gitignored. The wake phrase (`hey buddy`) works in both models.
+
 ### Disable Pi-4 WiFi power-save (important)
 
 Without this the SSH connection drops during longer Web-UI runs (known

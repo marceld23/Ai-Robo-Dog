@@ -32,6 +32,17 @@ if [ ! -f "$SOUNDS_DIR/single_bark_1.mp3" ]; then
     fi
 fi
 
+# Warn early if the Vosk model for the configured language is missing.
+LANG_CFG=$(grep -m1 '^language:' config.yaml | awk '{print $2}')
+case "$LANG_CFG" in
+  en) VOSK_DIR="models/vosk-model-small-en-us-0.15" ;;
+  *)  VOSK_DIR="models/vosk-model-small-de-0.15" ;;
+esac
+if [ ! -d "$VOSK_DIR" ]; then
+    echo ">> WARNING: Vosk model '$VOSK_DIR' missing (language=$LANG_CFG)."
+    echo ">> See README 'Setup' for the download command."
+fi
+
 # pyaudio/SDL backend explicitly to PipeWire-Pulse — otherwise SDL picks a
 # default driver that bypasses the voicehat routing (no audio output).
 export SDL_AUDIODRIVER=pulse

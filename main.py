@@ -108,9 +108,13 @@ def cmd_listen(args: argparse.Namespace) -> int:
     from aidog.sensors.bus import SensorBus
     from aidog.skills.vocal import _play
 
+    from aidog import i18n
+    _lang = i18n.lang()
+    _wake_models = wake_cfg.get("models") or {}
+    _wake_model = _wake_models.get(_lang) or _wake_models.get("de")
     stt = WhisperSTT(model=stt_cfg.get("model", "whisper-1"),
-                     language=stt_cfg.get("language", "de"))
-    wake = WakeWord(model_path=wake_cfg.get("model"),
+                     language=_lang)
+    wake = WakeWord(model_path=_wake_model,
                     phrases=wake_cfg.get("phrases", ["hey buddy"]))
     cue = wake_cfg.get("cue_sound")
 

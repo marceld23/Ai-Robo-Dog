@@ -13,7 +13,7 @@ import threading
 import time
 from typing import Any
 
-from .. import config as cfg_module, hardware
+from .. import config as cfg_module, hardware, i18n
 from ..agent import PiDogAgent
 from ..audio.recorder import record_until_silence
 from ..audio.stt import WhisperSTT, is_likely_hallucination
@@ -30,16 +30,18 @@ from .server import WebServer
 
 log = logging.getLogger(__name__)
 
-# Voice hard-stop: for these phrases no LLM call, but immediately
-# `body_stop` + head straight + stand pose. Whisper often returns punctuation
-# and capitalization — we normalize aggressively.
-_STOP_PHRASES = {"stop", "stopp", "aus", "halt", "halt!", "abbrechen",
-                 "schluss", "stop machen", "aus machen"}
+
+def _stop_phrases() -> set[str]:
+    """Voice hard-stop phrases for the active language (from config)."""
+    cfg = cfg_module.load().get("stop_phrases") or {}
+    phrases = cfg.get(i18n.lang()) or cfg.get("en") or ["stop"]
+    return {p.strip().lower() for p in phrases}
 
 
 def _is_stop_command(text: str) -> bool:
+    # Whisper often returns punctuation and capitalization — normalize hard.
     norm = text.strip().lower().rstrip(".!?,;:")
-    return norm in _STOP_PHRASES
+    return norm in _stop_phrases()
 
 
 def run_worker(server: WebServer) -> None:
@@ -48,9 +50,12 @@ def run_worker(server: WebServer) -> None:
     stt_cfg = config.section("stt")
     wake_cfg = config.section("wake")
 
+    _lang = i18n.lang()
+    _wake_models = wake_cfg.get("models") or {}
+    _wake_model = _wake_models.get(_lang) or _wake_models.get("de")
     stt = WhisperSTT(model=stt_cfg.get("model", "whisper-1"),
-                     language=stt_cfg.get("language", "de"))
-    wake = WakeWord(model_path=wake_cfg.get("model"),
+                     language=_lang)
+    wake = WakeWord(model_path=_wake_model,
                     phrases=wake_cfg.get("phrases", ["hey buddy"]))
     cue = wake_cfg.get("cue_sound")
 

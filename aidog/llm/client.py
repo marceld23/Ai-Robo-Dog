@@ -16,7 +16,7 @@ from typing import Any, Callable
 from openai import OpenAI
 
 from ..memory import MemoryStore
-from .prompt import SYSTEM_PROMPT
+from .prompt import get_system_prompt
 from .schema import tools_to_openai
 
 log = logging.getLogger(__name__)
@@ -112,7 +112,7 @@ class LLMClient:
                     iterations=iteration,
                 )
             tool_choice = self._tool_choice if iteration == 1 else "auto"
-            system_msgs = [{"role": "system", "content": SYSTEM_PROMPT}]
+            system_msgs = [{"role": "system", "content": get_system_prompt()}]
             mem_text = MemoryStore.instance().render_for_prompt()
             if mem_text:
                 system_msgs.append({"role": "system", "content": mem_text})

@@ -187,54 +187,54 @@
 </head>
 <body>
 <header>
-  <h1>🐾 Buddy</h1>
-  <span id="status-pill" class="pill">verbinde…</span>
-  <span id="key-pill" class="pill">key?</span>
+  <h1>🐾 <span data-i18n="ui.title">Buddy</span></h1>
+  <span id="status-pill" class="pill" data-i18n="ui.connecting">verbinde…</span>
+  <span id="key-pill" class="pill" data-i18n="ui.key_unknown">key?</span>
   <button id="settings-btn" type="button">⚙️</button>
 </header>
 
 <main>
   <section id="panel-stop" class="panel">
-    <h2>Eingriff</h2>
+    <h2 data-i18n="ui.intervene">Eingriff</h2>
     <div class="stop-row">
-      <button id="stop" class="danger" type="button" style="font-size:18px;">⏹ STOP</button>
-      <button id="pause" type="button" style="font-size:18px;">⏸ Pause</button>
+      <button id="stop" class="danger" type="button" style="font-size:18px;" data-i18n="ui.stop">⏹ STOP</button>
+      <button id="pause" type="button" style="font-size:18px;" data-i18n="ui.pause">⏸ Pause</button>
     </div>
-    <p id="pause-hint" style="margin:6px 0 0;font-size:12px;color:var(--muted);">
+    <p id="pause-hint" style="margin:6px 0 0;font-size:12px;color:var(--muted);" data-i18n="ui.pause_hint">
       Pause: Sensoren laufen weiter, aber kein LLM-Call.
     </p>
   </section>
 
   <section id="panel-camera" class="panel">
-    <h2>Sicht <button id="cam-pause" type="button"
+    <h2><span data-i18n="ui.camera">Sicht</span> <button id="cam-pause" type="button"
         style="float:right;min-height:28px;padding:0 8px;font-size:12px;">⏸</button></h2>
-    <img id="cam-img" alt="Buddys Sicht" loading="lazy">
+    <img id="cam-img" alt="Buddy view" loading="lazy">
     <div class="cam-meta" id="cam-meta">—</div>
   </section>
 
   <section id="panel-telemetry" class="panel">
-    <h2>Sensoren</h2>
+    <h2 data-i18n="ui.sensors">Sensoren</h2>
     <div class="tlm-grid">
       <div class="tlm-cell">
-        <span class="tlm-label">Distanz vorne</span>
+        <span class="tlm-label" data-i18n="ui.dist_front">Distanz vorne</span>
         <span id="tlm-dist" class="tlm-value">—</span>
       </div>
       <div class="tlm-cell">
-        <span class="tlm-label">Akku</span>
+        <span class="tlm-label" data-i18n="ui.battery">Akku</span>
         <span id="tlm-bat" class="tlm-value">—</span>
       </div>
       <div class="tlm-cell">
-        <span class="tlm-label">Pitch / Roll</span>
+        <span class="tlm-label" data-i18n="ui.pitch_roll">Pitch / Roll</span>
         <span id="tlm-tilt" class="tlm-value">—</span>
       </div>
       <div class="tlm-cell">
-        <span class="tlm-label">LED</span>
+        <span class="tlm-label" data-i18n="ui.led">LED</span>
         <span id="tlm-led" class="tlm-value">—</span>
       </div>
       <div class="tlm-cell" style="grid-column: 1 / -1; align-items: center;">
-        <span class="tlm-label">Letztes Geräusch (Richtung)</span>
+        <span class="tlm-label" data-i18n="ui.last_sound">Letztes Geräusch (Richtung)</span>
         <div class="compass">
-          <span class="label-n">N (vorn)</span>
+          <span class="label-n" data-i18n="ui.compass_n">N (vorn)</span>
           <div id="compass-needle" class="needle stale"></div>
         </div>
         <span id="tlm-sound" class="tlm-value" style="text-align:center;">—</span>
@@ -243,31 +243,33 @@
   </section>
 
   <section id="panel-log" class="panel">
-    <h2>Live-Log</h2>
+    <h2 data-i18n="ui.live_log">Live-Log</h2>
     <div id="log"></div>
   </section>
 
   <section id="panel-input" class="panel">
-    <h2>Anweisung an Buddy</h2>
+    <h2 data-i18n="ui.instruction">Anweisung an Buddy</h2>
     <form id="user-form" class="input-row" onsubmit="return false">
       <input id="user-text" type="text" placeholder="z.B. setz dich hin"
+             data-i18n-ph="ui.input_placeholder"
              autocomplete="off" inputmode="text">
-      <button id="user-send" class="primary" type="submit">Senden</button>
+      <button id="user-send" class="primary" type="submit" data-i18n="ui.send">Senden</button>
     </form>
   </section>
 
   <section id="panel-memory" class="panel">
-    <h2>Erinnerungen</h2>
+    <h2 data-i18n="ui.memories">Erinnerungen</h2>
     <div id="memories" class="memory-list"></div>
     <div class="mem-add">
-      <input id="mem-input" type="text" placeholder="Neue Erinnerung…">
+      <input id="mem-input" type="text" placeholder="Neue Erinnerung…"
+             data-i18n-ph="ui.mem_placeholder">
       <button id="mem-add-btn" type="button">+</button>
     </div>
   </section>
 
   <section id="panel-tools" class="panel">
     <details>
-      <summary>Direkte Tool-Calls (Debug)</summary>
+      <summary data-i18n="ui.tools_debug">Direkte Tool-Calls (Debug)</summary>
       <div id="tools"></div>
     </details>
   </section>
@@ -275,19 +277,19 @@
 
 <div id="modal-bg" class="modal-bg">
   <div class="modal">
-    <h3>OpenAI API Key</h3>
-    <p id="modal-hint" style="margin:0;color:var(--muted);font-size:13px;">
+    <h3 data-i18n="ui.settings_key">OpenAI API Key</h3>
+    <p id="modal-hint" style="margin:0;color:var(--muted);font-size:13px;" data-i18n="ui.settings_hint">
       Wird per Test-Call validiert.
     </p>
     <label>Key (sk-…)
       <input id="key-input" type="password" autocomplete="off">
     </label>
     <label style="flex-direction:row;align-items:center;gap:8px;">
-      <input id="key-persist" type="checkbox" checked> In secrets.env speichern
+      <input id="key-persist" type="checkbox" checked> <span data-i18n="ui.settings_persist">In secrets.env speichern</span>
     </label>
     <div class="modal-actions">
-      <button id="modal-cancel" type="button">Abbrechen</button>
-      <button id="modal-save" class="primary" type="button">Speichern</button>
+      <button id="modal-cancel" type="button" data-i18n="ui.cancel">Abbrechen</button>
+      <button id="modal-save" class="primary" type="button" data-i18n="ui.save">Speichern</button>
     </div>
   </div>
 </div>
@@ -301,13 +303,40 @@ const keyPill = $("key-pill");
 let ws = null;
 let backoff = 500;
 
-function setStatus(text, cls) {
-  statusPill.textContent = text;
+// --- i18n: strings come from /api/i18n (language fixed via config.yaml) ---
+let I18N = {};
+function T(key, vars) {
+  let s = I18N[key] || key;
+  if (vars) for (const k in vars) s = s.replace("{" + k + "}", vars[k]);
+  return s;
+}
+function applyI18n() {
+  document.querySelectorAll("[data-i18n]").forEach(el => {
+    const v = I18N[el.getAttribute("data-i18n")];
+    if (v) el.textContent = v;
+  });
+  document.querySelectorAll("[data-i18n-ph]").forEach(el => {
+    const v = I18N[el.getAttribute("data-i18n-ph")];
+    if (v) el.placeholder = v;
+  });
+}
+async function loadI18n() {
+  try {
+    const r = await fetch("/api/i18n");
+    const d = await r.json();
+    I18N = d.strings || {};
+    document.documentElement.lang = d.lang || "de";
+    applyI18n();
+  } catch (e) { /* keep HTML defaults */ }
+}
+
+function setStatus(textKey, cls) {
+  statusPill.textContent = T(textKey);
   statusPill.className = "pill " + (cls || "");
 }
 function setKeyStatus(status) {
-  if (status === "ok") { keyPill.textContent = "key ✓"; keyPill.className = "pill ok"; }
-  else if (status === "missing") { keyPill.textContent = "key fehlt"; keyPill.className = "pill err"; }
+  if (status === "ok") { keyPill.textContent = T("ui.key_ok"); keyPill.className = "pill ok"; }
+  else if (status === "missing") { keyPill.textContent = T("ui.key_missing"); keyPill.className = "pill err"; }
   else { keyPill.textContent = "key " + status; keyPill.className = "pill warn"; }
 }
 
@@ -352,9 +381,9 @@ function addLog(kind, payload) {
 function connect() {
   const proto = location.protocol === "https:" ? "wss:" : "ws:";
   ws = new WebSocket(`${proto}//${location.host}/ws`);
-  ws.onopen = () => { setStatus("verbunden", "ok"); backoff = 500; };
+  ws.onopen = () => { setStatus("ui.connected", "ok"); backoff = 500; };
   ws.onclose = () => {
-    setStatus("getrennt", "err");
+    setStatus("ui.disconnected", "err");
     setTimeout(connect, backoff);
     backoff = Math.min(backoff * 2, 8000);
   };
@@ -387,7 +416,7 @@ function refreshCamera() {
     img.src = tmp.src;
     $("cam-meta").textContent = new Date().toLocaleTimeString();
   };
-  tmp.onerror = () => { $("cam-meta").textContent = "Kamera nicht verfügbar"; };
+  tmp.onerror = () => { $("cam-meta").textContent = T("ui.camera_unavailable"); };
   tmp.src = url;
 }
 $("cam-pause").addEventListener("click", () => {
@@ -430,9 +459,9 @@ function renderTelemetry(t) {
     // Frisch (<5s) = grün/voll; älter = grau/blass; nach 10min nichts mehr.
     needle.classList.toggle("stale", t.sound_age_ms > 5000);
     let ageStr;
-    if (t.sound_age_ms < 1500) ageStr = "gerade jetzt";
-    else if (t.sound_age_ms < 60000) ageStr = `vor ${(t.sound_age_ms/1000).toFixed(1)} s`;
-    else ageStr = `vor ${Math.floor(t.sound_age_ms/60000)} min`;
+    if (t.sound_age_ms < 1500) ageStr = T("ui.sound_now");
+    else if (t.sound_age_ms < 60000) ageStr = T("ui.sound_ago_s", {s: (t.sound_age_ms/1000).toFixed(1)});
+    else ageStr = T("ui.sound_ago_min", {m: Math.floor(t.sound_age_ms/60000)});
     if (t.sound_age_ms > 600000) {
       sound.textContent = "—";
       needle.classList.add("stale");
@@ -466,7 +495,7 @@ let isPaused = false;
 function setPauseUI(paused) {
   isPaused = paused;
   const btn = $("pause");
-  btn.textContent = paused ? "▶ Weiter" : "⏸ Pause";
+  btn.textContent = paused ? T("ui.resume") : T("ui.pause");
   btn.classList.toggle("active", paused);
 }
 $("pause").addEventListener("click", () => {
@@ -478,22 +507,27 @@ function renderMemories(memories) {
   const root = $("memories");
   root.innerHTML = "";
   if (!memories.length) {
-    root.innerHTML = '<p style="color:var(--muted);font-size:13px;margin:0;">Noch keine Erinnerungen — Buddy lernt von Sprache oder du fügst sie unten hinzu.</p>';
+    const p = document.createElement("p");
+    p.style.cssText = "color:var(--muted);font-size:13px;margin:0;";
+    p.textContent = T("ui.mem_empty");
+    root.appendChild(p);
     return;
   }
   for (const m of memories) {
     const div = document.createElement("div");
     div.className = "mem-item";
-    div.innerHTML = `<span class="text"></span><button class="edit" title="bearbeiten">✏️</button><button class="del" title="löschen">🗑️</button>`;
+    div.innerHTML = `<span class="text"></span><button class="edit">✏️</button><button class="del">🗑️</button>`;
     div.querySelector(".text").textContent = m.text;
+    div.querySelector(".edit").title = T("ui.mem_edit");
+    div.querySelector(".del").title = T("ui.mem_delete");
     div.querySelector(".edit").onclick = () => {
-      const next = prompt("Erinnerung bearbeiten:", m.text);
+      const next = prompt(T("ui.mem_edit_prompt"), m.text);
       if (next !== null && next.trim() !== "" && next !== m.text) {
         send({ type: "memory_edit", id: m.id, text: next.trim() });
       }
     };
     div.querySelector(".del").onclick = () => {
-      if (confirm("Erinnerung löschen?\n\n" + m.text)) {
+      if (confirm(T("ui.mem_delete_confirm") + "\n\n" + m.text)) {
         send({ type: "memory_delete", id: m.id });
       }
     };
@@ -553,8 +587,7 @@ $("modal-save").addEventListener("click", () => {
   $("modal-bg").classList.remove("show");
 });
 
-connect();
-loadTools();
+loadI18n().then(() => { connect(); loadTools(); });
 </script>
 </body>
 </html>
