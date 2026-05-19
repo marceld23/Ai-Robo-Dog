@@ -12,6 +12,11 @@ User=dog
 WorkingDirectory=/home/dog/Ai-Robo-Dog
 # SDL must use PipeWire-Pulse or the voicehat gets no audio.
 Environment=SDL_AUDIODRIVER=pulse
+# A system service has no user session — point libpulse/pactl/paplay at the
+# dog user's PipeWire-Pulse socket. Requires `loginctl enable-linger dog`
+# so /run/user/1000 exists from boot (one-time, see README).
+Environment=XDG_RUNTIME_DIR=/run/user/1000
+Environment=PULSE_SERVER=unix:/run/user/1000/pulse/native
 # --start-paused: boot inert. The dog does NOT talk to the LLM until the
 # user opens the Web UI and clicks "Resume". Safe default for autostart.
 ExecStart=/home/dog/.local/bin/uv run python main.py web --host 0.0.0.0 --port 8080 --start-paused

@@ -230,6 +230,11 @@ the Web UI **paused** so it boots inert and only acts after you click
 *Resume*).
 
 ```bash
+# One-time: keep the dog user's PipeWire session alive from boot, so the
+# system service can reach audio (otherwise: pa_context_connect refused →
+# no sound). The unit points PULSE_SERVER/XDG_RUNTIME_DIR at /run/user/1000.
+sudo loginctl enable-linger dog
+
 sudo cp deploy/ai-robo-dog-netcfg.service deploy/ai-robo-dog.service /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable --now ai-robo-dog-netcfg.service ai-robo-dog.service
@@ -238,7 +243,8 @@ journalctl -u ai-robo-dog -f      # follow logs
 
 After a reboot the dog comes up online and **paused** — open the Web UI and
 press **Resume** to let it react. Edit the units if your paths differ
-(`uv` location, working directory, AP password).
+(`uv` location, working directory, AP password, or the runtime-dir uid if the
+service user isn't uid 1000).
 
 ## Configuration
 
