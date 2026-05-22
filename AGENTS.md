@@ -10,8 +10,9 @@ goes wrong on the hardware or cuts across the plan.
 dog that reacts like a real dog: dog sounds, body language, LED mood. **No**
 text/speech output. The LLM "speaks" exclusively through tool calls.
 
-The master plan is [PLAN.md](PLAN.md). Before changing code, check the phase
-table — we work phase by phase and skip none.
+The system architecture is documented in [ARCHITECTURE.md](ARCHITECTURE.md);
+remaining work and open risks are in [PLAN.md](PLAN.md). Before changing code,
+read the architecture and check what is still open.
 
 ## Hardware reality — please read
 
@@ -110,23 +111,21 @@ by the user — don't ask "should I test", give them the exact commands.
 - **Change system packages via pip.** `pip3 install ...` without a venv
   crashes due to PEP 668; that is intentional, not a problem to work around
   with `--break-system-packages`.
-- **Let README/AGENTS/PLAN/BUILD_LOG diverge in parallel.** When the plan
-  changes, keep them in sync. PLAN.md = architecture + open work; BUILD_LOG.md
-  = history of completed phases; README = user-facing; AGENTS = these
-  conventions. These are the only doc files we deliberately maintain.
+- **Let README/AGENTS/ARCHITECTURE/PLAN diverge in parallel.** When something
+  changes, keep them in sync. ARCHITECTURE.md = system architecture + how it
+  works; PLAN.md = remaining work + open risks; README = user-facing; AGENTS =
+  these conventions. These are the only doc files we deliberately maintain.
 
 ## Phase workflow
 
-When the user says "do phase X":
+When the user picks up open work:
 
-1. Find the phase in the PLAN, read its content + success test.
-2. If the phase changes hardware behavior (movement, sound), explicitly ask
-   whether the hardware is ready *before* you trigger tool calls.
-3. Finish the phase, then: set its status to ✅ in the PLAN.md phase table,
-   and add a short "What was built in phase X" note to **BUILD_LOG.md** (not
-   PLAN.md — PLAN.md holds only architecture reference + open planning, the
-   build history lives in BUILD_LOG.md). Don't document every bugfix — only
-   the completed phases.
+1. Find the item in [PLAN.md](PLAN.md), read its content + success test.
+2. If it changes hardware behavior (movement, sound), explicitly ask whether
+   the hardware is ready *before* you trigger tool calls.
+3. When it's done: remove it from PLAN.md and fold the resulting design into
+   [ARCHITECTURE.md](ARCHITECTURE.md) (architecture reference, not a changelog
+   of bugfixes).
 4. Update the README when new CLI commands or setup steps are added.
 
 ## When in doubt

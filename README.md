@@ -6,16 +6,15 @@ strip. Driven by an LLM through tool-calling.
 
 Hardware & SunFounder docs: <https://docs.sunfounder.com/projects/pidog/en/latest/>
 
-**Status:** Phases 0–12 done (skeleton, 45 skills, function-calling, Whisper STT,
-wake-word, vision with gpt-5.4-mini, sensor bus with touch + ultrasonic +
-sound-direction + battery, LED lifecycle incl. pause, critical shutdown, memory
-for teaching tricks, **Web UI with live telemetry, camera, memory editor, pause
-toggle, voice-stop**, **WiFi onboarding captive portal**, bilingual DE/EN).
-Remaining: phase 8 (personality tuning, ongoing) and phase 9 (robustness /
-30-min stress test).
+**What it does:** 45 dog skills driven by OpenAI function-calling, Whisper STT,
+Vosk wake-word, vision with gpt-5.4-mini, a sensor bus (touch + ultrasonic +
+sound-direction + battery), LED lifecycle with mood and critical-battery
+shutdown, persistent memory for teaching tricks, a mobile Web UI with live
+telemetry, camera, memory editor, pause toggle and voice-stop, WiFi onboarding
+via a captive portal, all bilingual (DE/EN).
 
-Open plan & architecture: [PLAN.md](PLAN.md) · How completed phases were built:
-[BUILD_LOG.md](BUILD_LOG.md) · Conventions for AI assistants: [AGENTS.md](AGENTS.md)
+Architecture & how it works: [ARCHITECTURE.md](ARCHITECTURE.md) · Remaining work:
+[PLAN.md](PLAN.md) · Conventions for AI assistants: [AGENTS.md](AGENTS.md)
 
 ## Prerequisite: SunFounder hardware bring-up (one-time, before this project)
 
@@ -82,7 +81,7 @@ uv venv --python /usr/bin/python3 --system-site-packages
 # install dependencies
 uv sync
 
-# set up the OpenAI key (phase 2+)
+# set up the OpenAI key
 cp secrets.env.example secrets.env
 chmod 600 secrets.env
 # content of secrets.env: OPENAI_API_KEY=sk-...
@@ -152,11 +151,11 @@ uv run python main.py call sit
 # call several tools in a row
 uv run python main.py sequence stand wag_tail bark_once
 
-# chat with the dog (phase 2, needs OPENAI_API_KEY in secrets.env)
+# chat with the dog (needs OPENAI_API_KEY in secrets.env)
 uv run python main.py chat
 uv run python main.py chat --say "Hey Buddy, bark!"
 
-# voice + sensor loop (phase 4–7a, needs OPENAI_API_KEY)
+# voice + sensor loop (needs OPENAI_API_KEY)
 uv run python main.py listen
 # triggers: say "hey buddy …" OR stroke the head OR hold a hand in front of the snout
 # every voice command automatically attaches a camera image
@@ -166,7 +165,7 @@ uv run python main.py listen
 # head pose: left=Whisper · right=LLM · neutral=ready
 ```
 
-### Web UI (recommended way to run, phase 10)
+### Web UI (recommended way to run)
 
 ```bash
 ./start.sh                 # foreground, Ctrl+C to quit
@@ -208,7 +207,7 @@ position — the dog must be standing safely and stably beforehand.
 PAUSED=1 ./start.sh --background # boot inert, act only after Web UI "Resume"
 ```
 
-## WiFi onboarding (phase 12)
+## WiFi onboarding
 
 If the dog finds no known WiFi within ~45 s of boot, it opens its own
 access point **`ai-robo-dog-wifi`** with a captive portal (DE/EN). Connect a
@@ -248,9 +247,8 @@ service user isn't uid 1000).
 
 ## Configuration
 
-All parameters live in [config.yaml](config.yaml). It already contains settings
-for later phases (wake-word, STT, LLM, sensors) — they are ignored as long as
-the corresponding modules are not implemented.
+All parameters live in [config.yaml](config.yaml) — language, wake-word, STT,
+LLM, LED, and sensor blocks.
 
 `secrets.env` is gitignored and chmod'ed to `0600`.
 
@@ -261,8 +259,8 @@ Ai-Robo-Dog/
 ├── main.py           # CLI
 ├── config.yaml
 ├── secrets.env       # gitignored
-├── PLAN.md           # architecture + open plan (phases 8, 9, 12)
-├── BUILD_LOG.md      # how the completed phases were built
+├── ARCHITECTURE.md   # system architecture + how it works
+├── PLAN.md           # remaining work + open risks
 ├── AGENTS.md         # for AI assistants
 └── aidog/
     ├── hardware.py   # Pidog/ActionFlow singleton
@@ -276,7 +274,7 @@ Ai-Robo-Dog/
     └── web/          # FastAPI + WebSocket UI
 ```
 
-Full layout tree: see [PLAN.md § 4](PLAN.md).
+Full layout tree: see [ARCHITECTURE.md § 4](ARCHITECTURE.md).
 
 ## License
 
