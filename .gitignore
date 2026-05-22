@@ -10,3 +10,6 @@ secrets.env
 models/
 data/
 sounds/
+# stray Windows env-var dirs created by misrun npm/npx
+%APPDATA%/
+aidog/%APPDATA%/
