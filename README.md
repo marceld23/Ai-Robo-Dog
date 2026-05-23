@@ -1,5 +1,9 @@
 # Ai-Robo-Dog
 
+<p align="center">
+  <img src="assets/logo.png" alt="Ai-Robo-Dog logo" width="240">
+</p>
+
 LLM-driven dog on a SunFounder PiDog v2 (Raspberry Pi 4). The dog never speaks
 words — it barks, growls, howls, moves, and shows its mood via the chest LED
 strip. Driven by an LLM through tool-calling.
