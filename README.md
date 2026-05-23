@@ -290,5 +290,5 @@ The MIT license covers **only** the code in this repo. At runtime the project
 imports the SunFounder hardware libraries `pidog`, `vilib`, `robot_hat`, which
 are **GPLv3** and installed separately by SunFounder's own installer — they are
 not bundled or redistributed here. Declared Python dependencies are all under
-permissive licenses (MIT / BSD-3 / Apache-2.0). See the [LICENSE](LICENSE) file
-for the full third-party breakdown.
+permissive licenses (MIT / BSD-3 / Apache-2.0). See [NOTICE.md](NOTICE.md) for
+the full third-party breakdown.
