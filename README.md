@@ -10,6 +10,12 @@ understands what you say. The AI is what drives the dog: it picks every move,
 every sound and every LED colour. The dog itself never speaks words — it
 barks, growls, howls, moves, and shows its mood via the chest LED strip.
 
+<p align="center">
+  <img src="assets/buddy.jpg" alt="Buddy, the real PiDog, chest LED lit" width="280">
+  <br>
+  <sub><i>Buddy in real life — chest LED strip in action.</i></sub>
+</p>
+
 Hardware & SunFounder docs: <https://docs.sunfounder.com/projects/pidog/en/latest/>
 
 **What it does:** 45 dog skills driven by OpenAI function-calling, Whisper STT,
